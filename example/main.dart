@@ -2,22 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:api_error_monitor/api_error_monitor.dart';
 
-// Example model for testing
-class UserModel {
-  final String name;
-  final String email;
-  final int age;
-
-  UserModel({required this.name, required this.email, required this.age});
-
-  factory UserModel.fromJson(Map<String, dynamic> json) {
-    return UserModel(
-      name: json['name'] as String,
-      email: json['email'] as String,
-      age: json['age'] as int,
-    );
-  }
-}
+const _baseUrl = 'https://jsonplaceholder.typicode.com';
+const _userEndpoint = '/users/1';
+const _discordWebhookUrl =
+    String.fromEnvironment('DISCORD_WEBHOOK', defaultValue: '');
 
 void main() {
   runApp(const MyApp());
@@ -29,12 +17,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'API Logger Example',
+      title: 'API Error Monitor Example',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'API Logger Example'),
+      home: const MyHomePage(title: 'API Error Monitor Example'),
     );
   }
 }
@@ -49,153 +37,118 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // Initialize API error monitor
   late final ApiErrorMonitor errorMonitor;
   late final Dio dio;
 
   String _status = 'Ready';
-  List<String> _logs = [];
+  final List<String> _logs = [];
 
   @override
   void initState() {
     super.initState();
 
-    // Initialize error monitor
-    // Replace with your Discord webhook URL
     errorMonitor = ApiErrorMonitor(
-      appName: "API Logger Example",
-      discordWebhookUrl: null, // Add your webhook URL here
-      enableInDebugMode: true, // Enable in debug mode for testing
+      appName: 'API Error Monitor Example',
+      discordWebhookUrl:
+          _discordWebhookUrl.isEmpty ? null : _discordWebhookUrl,
+      enableInDebugMode: true,
       enableLocalLogging: true,
     );
 
-    // Initialize Dio with error monitoring
-    dio = Dio();
+    dio = Dio(
+      BaseOptions(
+        baseUrl: _baseUrl,
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 10),
+      ),
+    );
+
     dio.addApiErrorMonitoring(errorMonitor: errorMonitor);
 
     _addLog('Error monitor initialized');
+    if (_discordWebhookUrl.isEmpty) {
+      _addLog(
+        'TIP: Define DISCORD_WEBHOOK env var to send reports to Discord.',
+      );
+    }
   }
 
   void _addLog(String message) {
+    if (!mounted) return;
     setState(() {
       _logs.add('${DateTime.now().toString().substring(11, 19)}: $message');
     });
   }
 
-  // Test 1: Type mismatch error
-  Future<void> _testTypeMismatch() async {
-    setState(() {
-      _status = 'Testing type mismatch...';
-    });
-    _addLog('Testing type mismatch error');
+  void _updateStatus(String message) {
+    if (!mounted) return;
+    setState(() => _status = message);
+  }
 
+  Future<void> _runScenario({
+    required String description,
+    required void Function(Map<String, dynamic>) action,
+  }) async {
+    final endpoint = '$_baseUrl$_userEndpoint';
+    _updateStatus('Running $description scenario...');
+    _addLog('GET $endpoint');
+
+    Response<dynamic>? response;
     try {
-      // Simulate API response with wrong type
-      final response = {
-        'name': 'John Doe',
-        'email': 'john@example.com',
-        'age': '25', // Should be int, but is String
-      };
-
-      final user = UserModel.fromJson(response);
-      _addLog('User created: ${user.name}');
+      response = await dio.get(_userEndpoint);
+      final data = Map<String, dynamic>.from(response.data as Map);
+      action(data);
+      _addLog('$description completed without errors.');
     } catch (e, s) {
-      _addLog('Error caught: ${e.toString()}');
-      // Get response from the try block scope
-      final response = {
-        'name': 'John Doe',
-        'email': 'john@example.com',
-        'age': '25',
-      };
+      _addLog('$description captured error: $e');
       await errorMonitor.capture(
         e,
         stackTrace: s,
-        endpoint: '/api/users',
-        responseData: response,
+        endpoint: endpoint,
+        responseData: response?.data,
       );
-      _addLog('Error reported to monitor');
+    } finally {
+      _updateStatus('$description scenario finished');
     }
-
-    setState(() {
-      _status = 'Type mismatch test completed';
-    });
   }
 
-  // Test 2: Missing key error
-  Future<void> _testMissingKey() async {
-    setState(() {
-      _status = 'Testing missing key...';
-    });
-    _addLog('Testing missing key error');
-
-    try {
-      // Simulate API response with missing key
-      final response = {
-        'name': 'John Doe',
-        // 'email' is missing
-        'age': 25,
-      };
-
-      final user = UserModel.fromJson(response);
-      _addLog('User created: ${user.name}');
-    } catch (e, s) {
-      _addLog('Error caught: ${e.toString()}');
-      // Get response from the try block scope
-      final response = {'name': 'John Doe', 'age': 25};
-      await errorMonitor.capture(
-        e,
-        stackTrace: s,
-        endpoint: '/api/users',
-        responseData: response,
-      );
-      _addLog('Error reported to monitor');
-    }
-
-    setState(() {
-      _status = 'Missing key test completed';
-    });
+  Future<void> _fetchUserWithTypeMismatch() async {
+    await _runScenario(
+      description: 'Type mismatch',
+      action: (data) {
+        // jsonplaceholder returns id as int -> expect String to trigger error
+        final id = data['id'] as String;
+        final email = data['email'] as String;
+        _addLog('Parsed id=$id email=$email (unexpected)');
+      },
+    );
   }
 
-  // Test 3: Null value error
-  Future<void> _testNullValue() async {
-    setState(() {
-      _status = 'Testing null value...';
-    });
-    _addLog('Testing null value error');
-
-    try {
-      // Simulate API response with null value
-      final response = {
-        'name': 'John Doe',
-        'email': null, // Should be String, but is null
-        'age': 25,
-      };
-
-      final user = UserModel.fromJson(response);
-      _addLog('User created: ${user.name}');
-    } catch (e, s) {
-      _addLog('Error caught: ${e.toString()}');
-      // Get response from the try block scope
-      final response = {'name': 'John Doe', 'email': null, 'age': 25};
-      await errorMonitor.capture(
-        e,
-        stackTrace: s,
-        endpoint: '/api/users',
-        responseData: response,
-      );
-      _addLog('Error reported to monitor');
-    }
-
-    setState(() {
-      _status = 'Null value test completed';
-    });
+  Future<void> _fetchUserWithMissingKey() async {
+    await _runScenario(
+      description: 'Missing key',
+      action: (data) {
+        // The API does not return an "age" field -> expect int to trigger error
+        final age = data['age'] as int;
+        _addLog('Parsed age=$age (unexpected)');
+      },
+    );
   }
 
-  // Test 4: View local reports
+  Future<void> _fetchUserSuccessfully() async {
+    await _runScenario(
+      description: 'Successful parse',
+      action: (data) {
+        final user = UserModel.fromJson(data);
+        _addLog(
+          'Parsed user: ${user.name} (${user.email}) from ${user.city}.',
+        );
+      },
+    );
+  }
+
   Future<void> _viewLocalReports() async {
-    setState(() {
-      _status = 'Loading local reports...';
-    });
+    _updateStatus('Loading local reports...');
     _addLog('Loading local reports');
 
     final reports = await errorMonitor.getLocalReports();
@@ -205,16 +158,11 @@ class _MyHomePageState extends State<MyHomePage> {
       _addLog('Report: ${report.endpoint} - ${report.errorMessage}');
     }
 
-    setState(() {
-      _status = 'Loaded ${reports.length} reports';
-    });
+    _updateStatus('Loaded ${reports.length} reports');
   }
 
-  // Test 5: Process queue
   Future<void> _processQueue() async {
-    setState(() {
-      _status = 'Processing queue...';
-    });
+    _updateStatus('Processing queue...');
     _addLog('Processing queue');
 
     final queueSize = errorMonitor.queueSize;
@@ -227,16 +175,11 @@ class _MyHomePageState extends State<MyHomePage> {
       _addLog('Queue is empty');
     }
 
-    setState(() {
-      _status = 'Queue processed';
-    });
+    _updateStatus('Queue processed');
   }
 
-  // Test 6: Clear local reports
   Future<void> _clearLocalReports() async {
-    setState(() {
-      _status = 'Clearing local reports...';
-    });
+    _updateStatus('Clearing local reports...');
     _addLog('Clearing local reports');
 
     final success = await errorMonitor.clearLocalReports();
@@ -246,9 +189,7 @@ class _MyHomePageState extends State<MyHomePage> {
       _addLog('Failed to clear local reports');
     }
 
-    setState(() {
-      _status = 'Local reports cleared';
-    });
+    _updateStatus('Local reports cleared');
   }
 
   @override
@@ -272,33 +213,33 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: const EdgeInsets.all(16.0),
               children: [
                 ElevatedButton(
-                  onPressed: _testTypeMismatch,
-                  child: const Text('Test Type Mismatch'),
+                  onPressed: _fetchUserWithTypeMismatch,
+                  child: const Text('Fetch user (type mismatch)'),
                 ),
                 const SizedBox(height: 8),
                 ElevatedButton(
-                  onPressed: _testMissingKey,
-                  child: const Text('Test Missing Key'),
+                  onPressed: _fetchUserWithMissingKey,
+                  child: const Text('Fetch user (missing key)'),
                 ),
                 const SizedBox(height: 8),
                 ElevatedButton(
-                  onPressed: _testNullValue,
-                  child: const Text('Test Null Value'),
+                  onPressed: _fetchUserSuccessfully,
+                  child: const Text('Fetch user (success)'),
                 ),
                 const SizedBox(height: 8),
                 ElevatedButton(
                   onPressed: _viewLocalReports,
-                  child: const Text('View Local Reports'),
+                  child: const Text('View local reports'),
                 ),
                 const SizedBox(height: 8),
                 ElevatedButton(
                   onPressed: _processQueue,
-                  child: const Text('Process Queue'),
+                  child: const Text('Process webhook retry queue'),
                 ),
                 const SizedBox(height: 8),
                 ElevatedButton(
                   onPressed: _clearLocalReports,
-                  child: const Text('Clear Local Reports'),
+                  child: const Text('Clear local reports'),
                 ),
                 const SizedBox(height: 24),
                 Text('Logs:', style: Theme.of(context).textTheme.titleMedium),
@@ -327,6 +268,30 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class UserModel {
+  final int id;
+  final String name;
+  final String email;
+  final String city;
+
+  UserModel({
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.city,
+  });
+
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    final address = json['address'] as Map<String, dynamic>;
+    return UserModel(
+      id: json['id'] as int,
+      name: json['name'] as String,
+      email: json['email'] as String,
+      city: address['city'] as String,
     );
   }
 }
