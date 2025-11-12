@@ -13,12 +13,16 @@ class ApiErrorDioInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    // Capture parsing errors
-    if (err.type == DioExceptionType.badResponse) {
+    // Don't capture network errors (timeout, connection, etc.)
+    // Only capture if it's a bad response with data (might be parsing related)
+    // But ApiErrorMonitor will filter out non-parsing errors
+    if (err.type == DioExceptionType.badResponse && err.response != null) {
       final endpoint = err.requestOptions.uri.toString();
       final requestData = err.requestOptions.data;
       final responseData = err.response?.data;
 
+      // Only capture if response has data (might be parsing error)
+      // ApiErrorMonitor will filter out non-type errors
       errorMonitor.capture(
         err,
         stackTrace: err.stackTrace,
@@ -42,6 +46,7 @@ class ApiErrorDioInterceptor extends Interceptor {
         final requestData = response.requestOptions.data;
         final responseData = response.data;
 
+        // Capture parsing error with full stack trace
         errorMonitor.capture(
           e,
           stackTrace: stackTrace,

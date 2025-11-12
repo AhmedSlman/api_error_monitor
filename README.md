@@ -21,7 +21,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  api_error_monitor: ^0.0.1
+  api_error_monitor: ^0.0.2
 ```
 
 Then run:

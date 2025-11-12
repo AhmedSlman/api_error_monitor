@@ -1,3 +1,13 @@
+## 0.0.2
+
+* Improved key extraction from source files in debug mode
+* Enhanced error parsing with better type detection
+* Fixed unreliable heuristic approach for key extraction
+* Better stack trace analysis for production environments
+* Improved file path resolution for source file reading
+* More reliable error reporting in debug mode
+* Better handling of type mismatch errors
+
 ## 0.0.1
 
 * Initial release

@@ -132,6 +132,7 @@ class ApiErrorMonitor {
   bool get isEnabled => _config.enabled;
 
   /// Capture and report an API error
+  /// Focuses on type mismatch and parsing errors, ignores network errors
   Future<void> capture(
     dynamic error, {
     StackTrace? stackTrace,
@@ -142,21 +143,73 @@ class ApiErrorMonitor {
     String? expectedType,
     String? receivedType,
   }) async {
-    if (!_config.enabled) return;
+    print('🚀 ApiErrorMonitor.capture called');
+    print('📝 Provided key: $key');
+    print('📝 Provided expectedType: $expectedType');
+    print('📝 Provided receivedType: $receivedType');
+    print('📝 Error: ${error.toString()}');
+    print('📝 Stack trace available: ${stackTrace != null}');
+
+    if (!_config.enabled) {
+      print('⚠️ ApiErrorMonitor is disabled');
+      return;
+    }
 
     // Check debug mode
     if (kDebugMode && !_config.enableInDebugMode) {
+      print('⚠️ Debug mode is enabled but enableInDebugMode is false');
+      return;
+    }
+
+    // Ignore network/HTTP errors (DioException, SocketException, etc.)
+    // Focus only on parsing/type errors
+    final errorMessage = error.toString();
+
+    // Check if it's a DioException (network error) by checking the error message
+    if (errorMessage.contains('DioException') &&
+        !errorMessage.toLowerCase().contains('type') &&
+        !errorMessage.toLowerCase().contains('subtype') &&
+        !errorMessage.toLowerCase().contains('cast')) {
+      // This is likely a network/HTTP error, not a parsing error
+      // Skip it unless it contains type-related keywords
       return;
     }
 
     try {
-      final errorMessage = error.toString();
-      final errorInfo = ErrorParser.parseError(error, errorMessage);
+      // Combine error message with stack trace for better key extraction
+      final fullErrorContext = stackTrace != null
+          ? '$errorMessage\n$stackTrace'
+          : errorMessage;
 
-      // Use provided values or parsed values
+      print('🔍 Calling ErrorParser.parseError...');
+      print('📝 Error message: $errorMessage');
+      print('📝 Stack trace available: ${stackTrace != null}');
+
+      final errorInfo = ErrorParser.parseError(error, fullErrorContext);
+
+      print(
+        '📊 ErrorInfo received - Key: ${errorInfo.key}, Expected: ${errorInfo.expectedType}, Received: ${errorInfo.receivedType}',
+      );
+
+      // Use provided values or parsed values (provided values take priority)
       final finalKey = key ?? errorInfo.key;
       final finalExpectedType = expectedType ?? errorInfo.expectedType;
       final finalReceivedType = receivedType ?? errorInfo.receivedType;
+
+      // Only report if it's a type error or parsing error
+      // Skip if no type information is available (likely network error)
+      if (finalExpectedType == null &&
+          finalReceivedType == null &&
+          finalKey == null &&
+          !errorMessage.toLowerCase().contains('type') &&
+          !errorMessage.toLowerCase().contains('subtype') &&
+          !errorMessage.toLowerCase().contains('cast')) {
+        // This doesn't look like a parsing/type error, skip it
+        return;
+      }
+
+      // Clean error message - remove stack trace completely
+      final cleanErrorMessage = _removeStackTraceFromMessage(errorMessage);
 
       final report = ApiErrorReport(
         appName: _config.appName,
@@ -164,8 +217,8 @@ class ApiErrorMonitor {
         key: finalKey,
         expectedType: finalExpectedType,
         receivedType: finalReceivedType,
-        errorMessage: errorMessage,
-        stackTrace: stackTrace?.toString(),
+        errorMessage: cleanErrorMessage,
+        stackTrace: null, // Never send stack trace to Discord
         requestData: requestData,
         responseData: responseData,
       );
@@ -228,5 +281,52 @@ class ApiErrorMonitor {
   /// Clear queue
   void clearQueue() {
     _reporterQueue?.clear();
+  }
+
+  /// Remove stack trace from error message completely
+  String _removeStackTraceFromMessage(String errorMessage) {
+    if (errorMessage.isEmpty) return errorMessage;
+
+    final lines = errorMessage.split('\n');
+    final cleanLines = <String>[];
+
+    for (final line in lines) {
+      final trimmed = line.trim();
+
+      // Skip empty lines
+      if (trimmed.isEmpty) continue;
+
+      // Skip stack trace lines completely:
+      // - Lines starting with #
+      // - Lines containing package: or dart:
+      // - Lines with file paths (.dart)
+      // - Lines with function names and line numbers
+      // - Lines with <anonymous closure> or <asynchronous suspension>
+      if (trimmed.startsWith('#') ||
+          trimmed.startsWith('at ') ||
+          line.contains('package:') ||
+          line.contains('dart:') ||
+          line.contains('.dart:') ||
+          line.contains('<anonymous closure>') ||
+          line.contains('<asynchronous suspension>') ||
+          line.contains('MappedListIterable') ||
+          line.contains('ListIterator') ||
+          line.contains('_GrowableList') ||
+          line.contains('List.of') ||
+          line.contains('ListIterable')) {
+        continue;
+      }
+
+      cleanLines.add(line);
+    }
+
+    final result = cleanLines.join('\n').trim();
+
+    // If result is empty or only contains error type, return a simple message
+    if (result.isEmpty || result.length < 10) {
+      return 'Type mismatch error occurred during JSON parsing';
+    }
+
+    return result;
   }
 }
