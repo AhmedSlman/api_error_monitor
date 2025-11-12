@@ -14,6 +14,7 @@
 ### 2. تحديث pubspec.yaml
 
 قبل النشر، يجب تحديث `pubspec.yaml` بتغيير:
+
 - `homepage: https://github.com/yourusername/api_logger`
 - `repository: https://github.com/yourusername/api_logger`
 - `issue_tracker: https://github.com/yourusername/api_logger/issues`
@@ -54,6 +55,7 @@ flutter pub publish
 ```
 
 ستحتاج إلى:
+
 - تأكيد النشر
 - إدخال OAuth token (إذا طُلب)
 
@@ -99,20 +101,23 @@ flutter pub publish
 ### مشكلة: "Package has 0 warnings" لكن النشر فشل
 
 **الحل**: تأكد من:
+
 - أن repository موجود على GitHub
 - أن pubspec.yaml يحتوي على repository URL صحيح
 - أن LICENSE موجود
 
 ### مشكلة: "Authentication failed"
 
-**الحل**: 
+**الحل**:
+
 1. تأكد من تسجيل الدخول بحساب Google على pub.dev
 2. تأكد من ربط حساب GitHub
 3. جرب استخدام OAuth token
 
 ### مشكلة: "Version already exists"
 
-**الحل**: 
+**الحل**:
+
 - قم بتحديث version في pubspec.yaml
 - لا يمكن إعادة نشر نفس النسخة
 
@@ -121,4 +126,3 @@ flutter pub publish
 - [pub.dev Publishing Guide](https://dart.dev/tools/pub/publishing)
 - [Flutter Package Publishing](https://flutter.dev/docs/development/packages-and-plugins/developing-packages#publish)
 - [GitHub Guide](https://docs.github.com/en/get-started/quickstart/create-a-repo)
-
