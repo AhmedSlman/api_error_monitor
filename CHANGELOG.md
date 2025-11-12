@@ -1,3 +1,8 @@
+## 0.0.3
+
+* Updated example Discord webhook URL to placeholder
+* Added LinkedIn post documentation
+
 ## 0.0.2
 
 * Improved key extraction from source files in debug mode
