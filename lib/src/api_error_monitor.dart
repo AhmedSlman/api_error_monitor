@@ -155,11 +155,13 @@ class ApiErrorMonitor {
       return;
     }
 
-    // Check debug mode
+    // Check debug mode - in Release Mode, always allow reporting
+    // Only skip if we're in Debug Mode AND enableInDebugMode is false
     if (kDebugMode && !_config.enableInDebugMode) {
       print('⚠️ Debug mode is enabled but enableInDebugMode is false');
       return;
     }
+    // In Release Mode, reporting is always enabled (unless explicitly disabled)
 
     // Ignore network/HTTP errors (DioException, SocketException, etc.)
     // Focus only on parsing/type errors

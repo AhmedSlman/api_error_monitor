@@ -17,8 +17,7 @@ import 'views/product_detail_view.dart';
 //   Note: The channel URL (https://discord.com/channels/...) is NOT a webhook URL
 const _discordWebhookUrl = String.fromEnvironment(
   'DISCORD_WEBHOOK',
-  defaultValue:
-      'https://discord.com/api/webhooks/1438089449929052261/L8-7QNcsB7gCTdSJAjyJ4hAQ4lQwVdyb5s3nFodePQj64gIK6EqJ2MI05HrM9UcerEIO',
+  defaultValue: 'https://discord.com/api/webhooks/xxxxxxxx',
 );
 
 void main() {
