@@ -1,5 +1,5 @@
-name: api_logger_example
-description: Example app for api_logger package
+name: api_error_monitor_example
+description: Example app for api_error_monitor package
 publish_to: "none"
 
 version: 1.0.0+1
@@ -11,7 +11,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  api_logger:
+  api_error_monitor:
     path: ../
   dio: ^5.4.0
 

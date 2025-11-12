@@ -1,4 +1,4 @@
-# API Logger
+# API Error Monitor
 
 A Dart/Flutter package that automatically detects and reports API response parsing errors, including type mismatches and missing keys, with Discord webhook integration.
 
@@ -21,7 +21,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  api_logger: ^0.0.1
+  api_error_monitor: ^0.0.1
 ```
 
 Then run:
@@ -35,7 +35,7 @@ flutter pub get
 ### Basic Usage
 
 ```dart
-import 'package:api_logger/api_logger.dart';
+import 'package:api_error_monitor/api_error_monitor.dart';
 
 // Initialize the error monitor
 final errorMonitor = ApiErrorMonitor(
@@ -60,7 +60,7 @@ try {
 
 ```dart
 import 'package:dio/dio.dart';
-import 'package:api_logger/api_logger.dart';
+import 'package:api_error_monitor/api_error_monitor.dart';
 
 final dio = Dio();
 
@@ -80,7 +80,7 @@ final user = UserModel.fromJson(response.data); // Errors will be automatically 
 ### Using with HTTP Package
 
 ```dart
-import 'package:api_logger/api_logger.dart';
+import 'package:api_error_monitor/api_error_monitor.dart';
 import 'package:http/http.dart' as http;
 
 final errorMonitor = ApiErrorMonitor(
@@ -167,7 +167,7 @@ https://discord.com/api/webhooks/1234567890/abcdefghijklmnopqrstuvwxyz
 
 Error reports are automatically saved to local files when `enableLocalLogging` is enabled. By default, logs are stored in:
 
-- **iOS/Android**: App documents directory (`api_logger/logs/`)
+- **iOS/Android**: App documents directory (`api_error_monitor/logs/`)
 - **Custom**: Use `customLogDirectory` to specify a custom path
 
 ### Retrieve Local Reports

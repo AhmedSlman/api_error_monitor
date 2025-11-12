@@ -9,7 +9,7 @@
 /// - Support for both Dio and http packages
 /// - Retry mechanism for failed webhook requests
 /// - Debug mode configuration
-library api_logger;
+library api_error_monitor;
 
 // Export main API
 export 'src/api_error_monitor.dart';

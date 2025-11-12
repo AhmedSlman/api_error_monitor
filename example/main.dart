@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-import 'package:api_logger/api_logger.dart';
+import 'package:api_error_monitor/api_error_monitor.dart';
 
 // Example model for testing
 class UserModel {

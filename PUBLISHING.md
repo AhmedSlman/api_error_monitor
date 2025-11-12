@@ -6,7 +6,7 @@
 
 1. اذهب إلى [GitHub](https://github.com)
 2. اضغط على "New repository"
-3. اختر اسم للـ repository (مثلاً: `api_logger`)
+3. اختر اسم للـ repository (مثلاً: `api_error_monitor`)
 4. اختر Public أو Private
 5. لا تختار "Initialize with README" (لأنك بالفعل لديك README)
 6. اضغط "Create repository"
@@ -15,9 +15,9 @@
 
 قبل النشر، يجب تحديث `pubspec.yaml` بتغيير:
 
-- `homepage: https://github.com/yourusername/api_logger`
-- `repository: https://github.com/yourusername/api_logger`
-- `issue_tracker: https://github.com/yourusername/api_logger/issues`
+- `homepage: https://github.com/yourusername/api_error_monitor`
+- `repository: https://github.com/yourusername/api_error_monitor`
+- `issue_tracker: https://github.com/yourusername/api_error_monitor/issues`
 
 استبدل `yourusername` باسم GitHub الخاص بك.
 
@@ -25,7 +25,7 @@
 
 ```bash
 # إضافة remote repository
-git remote add origin https://github.com/YOUR_USERNAME/api_logger.git
+git remote add origin https://github.com/YOUR_USERNAME/api_error_monitor.git
 
 # رفع الكود
 git branch -M main

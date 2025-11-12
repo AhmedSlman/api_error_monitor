@@ -1,9 +1,9 @@
-name: api_logger
+name: api_error_monitor
 description: "A Dart/Flutter package that automatically detects and reports API response parsing errors, including type mismatches and missing keys, with Discord webhook integration."
 version: 0.0.1
-homepage: https://github.com/AhmedSlman/api_logger
-repository: https://github.com/AhmedSlman/api_logger
-issue_tracker: https://github.com/AhmedSlman/api_logger/issues
+homepage: https://github.com/AhmedSlman/api_error_monitor
+repository: https://github.com/AhmedSlman/api_error_monitor
+issue_tracker: https://github.com/AhmedSlman/api_error_monitor/issues
 
 environment:
   sdk: ^3.9.2

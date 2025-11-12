@@ -13,9 +13,9 @@
 
 افتح `pubspec.yaml` وغير:
 ```yaml
-homepage: https://github.com/YOUR_USERNAME/api_logger
-repository: https://github.com/YOUR_USERNAME/api_logger
-issue_tracker: https://github.com/YOUR_USERNAME/api_logger/issues
+homepage: https://github.com/YOUR_USERNAME/api_error_monitor
+repository: https://github.com/YOUR_USERNAME/api_error_monitor
+issue_tracker: https://github.com/YOUR_USERNAME/api_error_monitor/issues
 ```
 
 استبدل `YOUR_USERNAME` باسم GitHub الخاص بك.
@@ -23,7 +23,7 @@ issue_tracker: https://github.com/YOUR_USERNAME/api_logger/issues
 ### 2. إنشاء Repository على GitHub
 
 1. اذهب إلى https://github.com/new
-2. اختر اسم: `api_logger`
+2. اختر اسم: `api_error_monitor`
 3. اختر Public
 4. **لا** تختار "Initialize with README"
 5. اضغط "Create repository"
@@ -31,10 +31,10 @@ issue_tracker: https://github.com/YOUR_USERNAME/api_logger/issues
 ### 3. رفع الكود إلى GitHub
 
 ```bash
-cd /Users/macbookaairm2/Documents/api_logger
+cd /Users/macbookaairm2/Documents/api_error_monitor
 
 # إضافة remote (استبدل YOUR_USERNAME)
-git remote add origin https://github.com/YOUR_USERNAME/api_logger.git
+git remote add origin https://github.com/YOUR_USERNAME/api_error_monitor.git
 
 # رفع الكود
 git branch -M main
@@ -86,8 +86,8 @@ flutter pub publish
 # 2. إنشاء repository على GitHub
 # 3. ثم:
 
-cd /Users/macbookaairm2/Documents/api_logger
-git remote add origin https://github.com/YOUR_USERNAME/api_logger.git
+cd /Users/macbookaairm2/Documents/api_error_monitor
+git remote add origin https://github.com/YOUR_USERNAME/api_error_monitor.git
 git branch -M main
 git push -u origin main
 

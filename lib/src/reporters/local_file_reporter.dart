@@ -23,7 +23,7 @@ class LocalFileReporter {
       _logDirectory = Directory(customLogDirectory!);
     } else {
       final appDocDir = await getApplicationDocumentsDirectory();
-      _logDirectory = Directory(path.join(appDocDir.path, 'api_logger', 'logs'));
+      _logDirectory = Directory(path.join(appDocDir.path, 'api_error_monitor', 'logs'));
     }
 
     if (!await _logDirectory.exists()) {
@@ -128,7 +128,7 @@ class LocalFileReporter {
       if (customLogDirectory != null) {
         return customLogDirectory!;
       }
-      return 'api_logger/logs';
+      return 'api_error_monitor/logs';
     }
   }
 }

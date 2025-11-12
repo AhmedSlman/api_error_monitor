@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:api_logger/api_logger.dart';
+import 'package:api_error_monitor/api_error_monitor.dart';
 
 void main() {
   // Initialize Flutter binding for tests
